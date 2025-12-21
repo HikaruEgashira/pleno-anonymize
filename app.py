@@ -66,8 +66,11 @@ def redact(req: RedactRequest):
         if et not in anonymizers:
             cfg = req.operators.get(et) if req.operators else None
             if not cfg:
-                cfg = {"type": "replace", "new_value": f"<{et}>"}
-            anonymizers[et] = OperatorConfig(**cfg)
+                anonymizers[et] = OperatorConfig("replace", {"new_value": f"<{et}>"})
+            else:
+                operator_name = cfg.get("type", "replace")
+                params = {k: v for k, v in cfg.items() if k != "type"}
+                anonymizers[et] = OperatorConfig(operator_name, params)
     out = anonymizer.anonymize(
         text=req.text,
         analyzer_results=results,
