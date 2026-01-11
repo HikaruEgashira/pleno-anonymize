@@ -181,17 +181,15 @@ const HeroSection = () => (
           <pre className="text-left text-sm md:text-base overflow-x-auto">
             <code className="text-[#e5e5e5]">
 {`# PII検出
-curl -X POST http://localhost:8000/analyze \\
+curl -X POST https://anonymize.plenoai.com/api/analyze \\
   -H "Content-Type: application/json" \\
   -d '{"text": "山田太郎さんの電話番号は090-1234-5678です。"}'
 
 # レスポンス
-{
-  "entities": [
-    {"type": "PERSON", "text": "山田太郎", "start": 0, "end": 4},
-    {"type": "PHONE_NUMBER", "text": "090-1234-5678", "start": 13, "end": 26}
-  ]
-}`}
+[
+  {"entity_type": "PERSON", "text": "山田太郎", "start": 0, "end": 4, "score": 0.85},
+  {"entity_type": "PHONE_NUMBER", "text": "090-1234-5678", "start": 13, "end": 26, "score": 0.99}
+]`}
             </code>
           </pre>
         </div>

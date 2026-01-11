@@ -41,8 +41,9 @@ const docSections: DocSection[] = [
     title: 'API Reference',
     icon: Code,
     subsections: [
-      { id: 'analyze', title: 'POST /analyze' },
-      { id: 'redact', title: 'POST /redact' },
+      { id: 'analyze', title: 'POST /api/analyze' },
+      { id: 'redact', title: 'POST /api/redact' },
+      { id: 'openai-proxy', title: '* /api/openai/*' },
     ],
   },
   {
@@ -292,10 +293,10 @@ const GettingStartedSection = () => (
             3
           </div>
           <h3 className="text-lg font-medium text-[#171717] dark:text-[#ededed]">
-            APIをテスト
+            APIをテスト（本番環境）
           </h3>
         </div>
-        <CodeBlock>{`curl -X POST http://localhost:8000/analyze \\
+        <CodeBlock>{`curl -X POST https://anonymize.plenoai.com/api/analyze \\
   -H "Content-Type: application/json" \\
   -d '{"text": "山田太郎さんの電話番号は090-1234-5678です。"}'`}</CodeBlock>
       </div>
@@ -309,10 +310,16 @@ const ApiSection = () => (
       API Reference
     </h1>
 
+    <div className="rounded-lg bg-[#e6f4ff] dark:bg-[#0a2a3d] border border-[#91caff] dark:border-[#1d4ed8] p-4 mb-6">
+      <p className="text-sm text-[#0050b3] dark:text-[#60a5fa]">
+        <strong>Base URL:</strong> <code>https://anonymize.plenoai.com</code>
+      </p>
+    </div>
+
     <div id="analyze" className="rounded-xl border border-[#eaeaea] dark:border-[#333] bg-white dark:bg-[#171717] p-6 scroll-mt-20">
       <div className="flex items-center gap-3 mb-4">
         <span className="px-2 py-1 text-xs font-medium rounded bg-[#d3f9d8] dark:bg-[#0a3d1a] text-[#0a7227] dark:text-[#4ade80]">POST</span>
-        <code className="text-lg font-medium text-[#171717] dark:text-[#ededed]">/analyze</code>
+        <code className="text-lg font-medium text-[#171717] dark:text-[#ededed]">/api/analyze</code>
       </div>
       <p className="text-[#666] dark:text-[#8f8f8f] mb-4">
         テキストからPIIエンティティを検出します。
@@ -320,34 +327,33 @@ const ApiSection = () => (
 
       <h4 className="font-medium text-[#171717] dark:text-[#ededed] mb-2">Request Body</h4>
       <CodeBlock>{`{
-  "text": "山田太郎さんの電話番号は090-1234-5678です。"
+  "text": "山田太郎さんの電話番号は090-1234-5678です。",
+  "language": "en"
 }`}</CodeBlock>
 
       <h4 className="font-medium text-[#171717] dark:text-[#ededed] mt-4 mb-2">Response</h4>
-      <CodeBlock>{`{
-  "entities": [
-    {
-      "type": "PERSON",
-      "text": "山田太郎",
-      "start": 0,
-      "end": 4,
-      "score": 0.95
-    },
-    {
-      "type": "PHONE_NUMBER",
-      "text": "090-1234-5678",
-      "start": 13,
-      "end": 26,
-      "score": 0.99
-    }
-  ]
-}`}</CodeBlock>
+      <CodeBlock>{`[
+  {
+    "entity_type": "PERSON",
+    "text": "山田太郎",
+    "start": 0,
+    "end": 4,
+    "score": 0.85
+  },
+  {
+    "entity_type": "PHONE_NUMBER",
+    "text": "090-1234-5678",
+    "start": 13,
+    "end": 26,
+    "score": 0.99
+  }
+]`}</CodeBlock>
     </div>
 
     <div id="redact" className="rounded-xl border border-[#eaeaea] dark:border-[#333] bg-white dark:bg-[#171717] p-6 scroll-mt-20">
       <div className="flex items-center gap-3 mb-4">
         <span className="px-2 py-1 text-xs font-medium rounded bg-[#d3f9d8] dark:bg-[#0a3d1a] text-[#0a7227] dark:text-[#4ade80]">POST</span>
-        <code className="text-lg font-medium text-[#171717] dark:text-[#ededed]">/redact</code>
+        <code className="text-lg font-medium text-[#171717] dark:text-[#ededed]">/api/redact</code>
       </div>
       <p className="text-[#666] dark:text-[#8f8f8f] mb-4">
         テキストのPIIを匿名化（マスキング）します。
@@ -355,13 +361,29 @@ const ApiSection = () => (
 
       <h4 className="font-medium text-[#171717] dark:text-[#ededed] mb-2">Request Body</h4>
       <CodeBlock>{`{
-  "text": "山田太郎さんの電話番号は090-1234-5678です。"
+  "text": "山田太郎さんの電話番号は090-1234-5678です。",
+  "language": "en"
 }`}</CodeBlock>
 
       <h4 className="font-medium text-[#171717] dark:text-[#ededed] mt-4 mb-2">Response</h4>
       <CodeBlock>{`{
-  "text": "<PERSON>さんの電話番号は<PHONE_NUMBER>です。"
+  "text": "<PERSON>さんの電話番号は<PHONE_NUMBER>です。",
+  "items": ["replace", "replace"]
 }`}</CodeBlock>
+    </div>
+
+    <div id="openai-proxy" className="rounded-xl border border-[#eaeaea] dark:border-[#333] bg-white dark:bg-[#171717] p-6 scroll-mt-20">
+      <div className="flex items-center gap-3 mb-4">
+        <span className="px-2 py-1 text-xs font-medium rounded bg-[#fef3c7] dark:bg-[#3d2e0a] text-[#92400e] dark:text-[#fbbf24]">*</span>
+        <code className="text-lg font-medium text-[#171717] dark:text-[#ededed]">/api/openai/*</code>
+      </div>
+      <p className="text-[#666] dark:text-[#8f8f8f] mb-4">
+        OpenAI APIへのプロキシエンドポイント。全てのHTTPメソッドに対応。
+      </p>
+
+      <h4 className="font-medium text-[#171717] dark:text-[#ededed] mb-2">Example</h4>
+      <CodeBlock>{`curl https://anonymize.plenoai.com/api/openai/v1/models \\
+  -H "Authorization: Bearer YOUR_OPENAI_API_KEY"`}</CodeBlock>
     </div>
   </section>
 );
@@ -411,6 +433,14 @@ const ArchitectureSection = () => (
           </thead>
           <tbody className="text-[#666] dark:text-[#8f8f8f]">
             <tr className="border-b border-[#eaeaea] dark:border-[#333]">
+              <td className="py-3 px-4">Infrastructure</td>
+              <td className="py-3 px-4">AWS Lambda (Container Image)</td>
+            </tr>
+            <tr className="border-b border-[#eaeaea] dark:border-[#333]">
+              <td className="py-3 px-4">API Gateway</td>
+              <td className="py-3 px-4">AWS API Gateway HTTP API</td>
+            </tr>
+            <tr className="border-b border-[#eaeaea] dark:border-[#333]">
               <td className="py-3 px-4">Web Framework</td>
               <td className="py-3 px-4">FastAPI</td>
             </tr>
@@ -425,6 +455,10 @@ const ArchitectureSection = () => (
             <tr className="border-b border-[#eaeaea] dark:border-[#333]">
               <td className="py-3 px-4">LLM</td>
               <td className="py-3 px-4">gpt-5-nano (OpenAI)</td>
+            </tr>
+            <tr className="border-b border-[#eaeaea] dark:border-[#333]">
+              <td className="py-3 px-4">DNS</td>
+              <td className="py-3 px-4">Cloudflare</td>
             </tr>
             <tr>
               <td className="py-3 px-4">言語</td>
@@ -497,6 +531,7 @@ const PrivacySection = () => (
 const subsectionIds = new Set([
   'analyze',
   'redact',
+  'openai-proxy',
   'presidio',
   'spacy-llm',
   'tech-stack',
@@ -518,7 +553,7 @@ export default function DocsPage() {
   }, [activeSection]);
 
   const getMainSectionKey = () => {
-    if (['analyze', 'redact'].includes(activeSection)) {
+    if (['analyze', 'redact', 'openai-proxy'].includes(activeSection)) {
       return 'api';
     }
     if (['presidio', 'spacy-llm', 'tech-stack'].includes(activeSection)) {
@@ -536,6 +571,7 @@ export default function DocsPage() {
       case 'api':
       case 'analyze':
       case 'redact':
+      case 'openai-proxy':
         return <ApiSection />;
       case 'architecture':
       case 'presidio':
