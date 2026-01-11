@@ -5,7 +5,7 @@ export default function DocsPage() {
   return (
     <ApiReferenceReact
       configuration={{
-        url: 'https://anonymize.plenoai.com/openapi.json',
+        url: `${import.meta.env.BASE_URL}openapi.json`,
         theme: 'default',
       }}
     />
