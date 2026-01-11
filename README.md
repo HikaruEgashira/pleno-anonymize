@@ -2,8 +2,8 @@
 
 日本語対応 PII（個人情報）匿名化サーバー。Presidio + spaCy-LLM を使用。
 
-- **Website:** https://hikaruegashira.github.io/pleno-anonymize/
-- **API Docs:** https://hikaruegashira.github.io/pleno-anonymize/docs
+- **Website:** https://plenoai.com/pleno-anonymize/
+- **API Docs:** https://plenoai.com/pleno-anonymize/docs
 - **Production API:** https://anonymize.plenoai.com
 
 ## API Endpoints
