@@ -94,7 +94,7 @@ export default function PrivacyPage() {
             <Section title="2. Data Processing">
               <p>
                 Pleno Anonymizeはセルフホスト型のAPIであり、お客様自身のサーバーで実行されます。
-                以下のデータ処理が行われます：
+                以下のデータ処理が行われます
               </p>
               <ul className="list-disc pl-6 space-y-2">
                 <li>リクエストで送信されたテキストのPII検出</li>
@@ -122,7 +122,7 @@ export default function PrivacyPage() {
             <Section title="5. Security">
               <p>
                 APIはご自身のインフラで実行されるため、セキュリティはお客様の責任となります。
-                以下のベストプラクティスを推奨します：
+                以下のベストプラクティスを推奨します
               </p>
               <ul className="list-disc pl-6 space-y-2">
                 <li>HTTPSの使用</li>

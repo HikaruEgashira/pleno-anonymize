@@ -97,7 +97,7 @@ export default function TermsPage() {
             </Section>
 
             <Section title="3. Permitted Use">
-              <p>以下の用途での利用が許可されています：</p>
+              <p>以下の用途での利用が許可されています</p>
               <ul className="space-y-2 mt-4">
                 <ListItem type="allowed">個人・商用目的でのAPI利用</ListItem>
                 <ListItem type="allowed">ソースコードの改変・カスタマイズ</ListItem>
@@ -107,7 +107,7 @@ export default function TermsPage() {
             </Section>
 
             <Section title="4. Prohibited Use">
-              <p>以下の用途での利用は禁止されています：</p>
+              <p>以下の用途での利用は禁止されています</p>
               <ul className="space-y-2 mt-4">
                 <ListItem type="prohibited">違法行為への利用</ListItem>
                 <ListItem type="prohibited">他者の権利を侵害する目的での利用</ListItem>
