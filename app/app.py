@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from typing import List, Optional, Dict, Any
 from fastapi import FastAPI
 from pydantic import BaseModel
@@ -11,7 +12,8 @@ from presidio_analyzer.nlp_engine import SpacyNlpEngine
 from presidio_anonymizer import AnonymizerEngine, OperatorConfig
 
 # spaCyパイプラインをconfig.cfgから組み立て
-nlp = assemble("config.cfg")
+config_path = Path(__file__).parent / "config.cfg"
+nlp = assemble(str(config_path))
 
 class LoadedSpacyNlpEngine(SpacyNlpEngine):
     def __init__(self, loaded_spacy_model):
