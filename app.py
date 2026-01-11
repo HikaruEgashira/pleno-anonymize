@@ -22,7 +22,7 @@ loaded_engine = LoadedSpacyNlpEngine(nlp)
 analyzer = AnalyzerEngine(nlp_engine=loaded_engine)
 anonymizer = AnonymizerEngine()
 
-app = FastAPI(title="PII Filter Server (Presidio + spaCy-LLM gpt-5-nano)")
+app = FastAPI(title="pleno-anonymize")
 
 class AnalyzeRequest(BaseModel):
     text: str

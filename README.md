@@ -1,6 +1,8 @@
-# [Presidio + spaCy-LLM] 日本語対応 PII filter
+# pleno-anonymize
 
-## サーバーの立ち上げ
+日本語対応 PII（個人情報）匿名化サーバー。Presidio + spaCy-LLM を使用。
+
+## Setup
 
 ```bash
 uv sync
@@ -9,7 +11,7 @@ export OPENAI_API_KEY=your_api_key_here
 uv run uvicorn app:app --reload --port 8000
 ```
 
-## API エンドポイント
+## API Endpoints
 
 ### 1. `/analyze` - PII検出
 
