@@ -180,7 +180,7 @@ const HeroSection = () => (
           </div>
           <pre className="text-left text-sm md:text-base overflow-x-auto">
             <code className="text-[#e5e5e5]">
-{`# PII検出
+              {`# PII検出
 curl -X POST https://anonymize.plenoai.com/api/analyze \\
   -H "Content-Type: application/json" \\
   -d '{"text": "山田太郎さんの電話番号は090-1234-5678です。"}'
@@ -212,7 +212,7 @@ const FeaturesSection = () => (
           主要機能
         </h2>
         <p className="mx-auto max-w-2xl text-[#666] dark:text-[#8f8f8f]">
-          日本語テキストの個人情報を高精度で検出・匿名化
+          日本語対応の個人情報（PII）検出・匿名化サーバー
         </p>
       </motion.div>
 
@@ -249,8 +249,8 @@ const FeaturesSection = () => (
         >
           <FeatureCard
             icon={Zap}
-            title="LLM駆動NER"
-            description="spaCy-LLMによる高精度な日本語固有表現抽出"
+            title="spaCy-LLM"
+            description="高精度な日本語固有表現抽出"
           />
         </motion.div>
         <motion.div
@@ -261,8 +261,8 @@ const FeaturesSection = () => (
         >
           <FeatureCard
             icon={ShieldCheck}
-            title="Presidio統合"
-            description="Microsoftのpresidioによる堅牢なPII処理基盤"
+            title="Presidio"
+            description="Microsoftのpresidioによる画像対応の堅牢なPII処理基盤"
           />
         </motion.div>
         <motion.div
@@ -285,8 +285,8 @@ const FeaturesSection = () => (
         >
           <FeatureCard
             icon={Code}
-            title="REST API"
-            description="FastAPIベースのシンプルなREST APIで簡単に統合可能"
+            title="LLM Proxy"
+            description="OpenAI/Anthropic API/Gemini APIのPII自動匿名化プロキシ"
           />
         </motion.div>
       </div>
