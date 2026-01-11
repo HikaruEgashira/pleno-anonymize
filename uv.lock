@@ -1553,6 +1553,7 @@ dependencies = [
     { name = "presidio-analyzer" },
     { name = "presidio-anonymizer" },
     { name = "presidio-image-redactor" },
+    { name = "scalar-fastapi" },
     { name = "spacy" },
     { name = "spacy-llm" },
     { name = "typer" },
@@ -1571,6 +1572,7 @@ requires-dist = [
     { name = "presidio-analyzer", specifier = ">=2.2" },
     { name = "presidio-anonymizer", specifier = ">=2.2" },
     { name = "presidio-image-redactor", specifier = ">=0.0.53" },
+    { name = "scalar-fastapi", specifier = ">=1.6.0" },
     { name = "spacy", specifier = ">=3.7" },
     { name = "spacy-llm", directory = "packages/spacy-llm" },
     { name = "typer", specifier = ">=0.9.0" },
@@ -2018,6 +2020,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/fe/75/af448d8e52bf1d8fa6a9d089ca6c07ff4453d86c65c145d0a300bb073b9b/rich-14.1.0.tar.gz", hash = "sha256:e497a48b844b0320d45007cdebfeaeed8db2a4f4bcf49f15e455cfc4af11eaa8", size = 224441 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/e3/30/3c4d035596d3cf444529e0b2953ad0466f6049528a879d27534700580395/rich-14.1.0-py3-none-any.whl", hash = "sha256:536f5f1785986d6dbdea3c75205c473f970777b4a0d6c6dd1b696aa05a3fa04f", size = 243368 },
+]
+
+[[package]]
+name = "scalar-fastapi"
+version = "1.6.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/4d/c5/bc6af52b86758420067e9ecfb8ee6b1f85191e61ca22cd54a7726574aee4/scalar_fastapi-1.6.0.tar.gz", hash = "sha256:3ddeb7c6733f97bbeddf05742594259ddcd01ee1468ee3c9724fb90b7e1d5eee", size = 7772 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/8c/ba/2e4d8ef2a4fb999e96884694aa86180e228d78a0d27d89e771d65d8f5f5b/scalar_fastapi-1.6.0-py3-none-any.whl", hash = "sha256:dced90a726c0408aee96217b3aa30424fda0ab4cb2f476753f8592f8d73a9edf", size = 7129 },
 ]
 
 [[package]]
