@@ -356,20 +356,35 @@ const ApiSection = () => (
         <code className="text-lg font-medium text-[#171717] dark:text-[#ededed]">/api/redact</code>
       </div>
       <p className="text-[#666] dark:text-[#8f8f8f] mb-4">
-        テキストのPIIを匿名化（マスキング）します。
+        テキストや画像のPIIを匿名化（マスキング）します。テキストと画像を同時に処理することも可能です。
       </p>
 
       <h4 className="font-medium text-[#171717] dark:text-[#ededed] mb-2">Request Body</h4>
       <CodeBlock>{`{
-  "text": "山田太郎さんの電話番号は090-1234-5678です。",
-  "language": "en"
+  "text": "山田太郎さんの電話番号は090-1234-5678です。",  // optional
+  "image": "data:image/png;base64,...",  // optional (base64 or data URL)
+  "language": "en",
+  "fill_color": [0, 0, 0]  // RGB for image redaction
 }`}</CodeBlock>
 
-      <h4 className="font-medium text-[#171717] dark:text-[#ededed] mt-4 mb-2">Response</h4>
+      <h4 className="font-medium text-[#171717] dark:text-[#ededed] mt-4 mb-2">Response (テキストのみ)</h4>
       <CodeBlock>{`{
   "text": "<PERSON>さんの電話番号は<PHONE_NUMBER>です。",
   "items": ["replace", "replace"]
 }`}</CodeBlock>
+
+      <h4 className="font-medium text-[#171717] dark:text-[#ededed] mt-4 mb-2">Response (テキスト + 画像)</h4>
+      <CodeBlock>{`{
+  "text": "<PERSON>さんの電話番号は<PHONE_NUMBER>です。",
+  "items": ["replace", "replace"],
+  "image": "data:image/png;base64,..."  // redacted image
+}`}</CodeBlock>
+
+      <div className="rounded-lg bg-[#e6f4ff] dark:bg-[#0a2a3d] border border-[#91caff] dark:border-[#1d4ed8] p-4 mt-4">
+        <p className="text-sm text-[#0050b3] dark:text-[#60a5fa]">
+          <strong>画像匿名化:</strong> OCR (Tesseract) でテキスト抽出 → Presidio でPII検出 → マスキング
+        </p>
+      </div>
     </div>
 
     <div id="openai-proxy" className="rounded-xl border border-[#eaeaea] dark:border-[#333] bg-white dark:bg-[#171717] p-6 scroll-mt-20">
@@ -378,16 +393,16 @@ const ApiSection = () => (
         <code className="text-lg font-medium text-[#171717] dark:text-[#ededed]">/api/openai/*</code>
       </div>
       <p className="text-[#666] dark:text-[#8f8f8f] mb-4">
-        OpenAI APIへのプロキシエンドポイント。<strong>Chat Completions APIでは自動PII匿名化が有効</strong>になり、リクエスト内の個人情報をマスキングしてからOpenAI APIに送信し、レスポンス時に元の値を復元します。
+        OpenAI APIへのプロキシエンドポイント。<strong>Chat Completions APIではテキスト・画像両方の自動PII匿名化が有効</strong>になり、リクエスト内の個人情報をマスキングしてからOpenAI APIに送信し、レスポンス時に元の値を復元します。
       </p>
 
       <div className="rounded-lg bg-[#e6f4ff] dark:bg-[#0a2a3d] border border-[#91caff] dark:border-[#1d4ed8] p-4 mb-4">
         <p className="text-sm text-[#0050b3] dark:text-[#60a5fa]">
-          <strong>自動redactフロー:</strong> クライアント → [PII検出&マスキング] → OpenAI API → [プレースホルダー復元] → クライアント
+          <strong>自動redactフロー:</strong> クライアント → [テキスト・画像のPII検出&マスキング] → OpenAI API → [プレースホルダー復元] → クライアント
         </p>
       </div>
 
-      <h4 className="font-medium text-[#171717] dark:text-[#ededed] mb-2">Example (自動redact)</h4>
+      <h4 className="font-medium text-[#171717] dark:text-[#ededed] mb-2">Example (テキスト自動redact)</h4>
       <CodeBlock>{`curl -X POST https://anonymize.plenoai.com/api/openai/v1/chat/completions \\
   -H "Content-Type: application/json" \\
   -H "Authorization: Bearer YOUR_OPENAI_API_KEY" \\
@@ -397,6 +412,22 @@ const ApiSection = () => (
   }'
 # → OpenAI APIには "<PERSON_0> (<EMAIL_ADDRESS_12>) について教えて" が送信される
 # → レスポンスでプレースホルダーが元の値に復元される`}</CodeBlock>
+
+      <h4 className="font-medium text-[#171717] dark:text-[#ededed] mt-4 mb-2">Example (Vision API - 画像内PII自動redact)</h4>
+      <CodeBlock>{`curl -X POST https://anonymize.plenoai.com/api/openai/v1/chat/completions \\
+  -H "Content-Type: application/json" \\
+  -H "Authorization: Bearer YOUR_OPENAI_API_KEY" \\
+  -d '{
+    "model": "gpt-4o",
+    "messages": [{
+      "role": "user",
+      "content": [
+        {"type": "text", "text": "この画像に何が写っていますか？"},
+        {"type": "image_url", "image_url": {"url": "data:image/png;base64,..."}}
+      ]
+    }]
+  }'
+# → 画像内のPII（名前、メール、電話番号等）がマスキングされてからOpenAI APIに送信`}</CodeBlock>
     </div>
   </section>
 );

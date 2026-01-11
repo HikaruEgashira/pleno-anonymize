@@ -1,11 +1,14 @@
 import os
 import json
 import re
+import base64
+import io
 from pathlib import Path
 from typing import List, Optional, Dict, Any, Tuple
 import httpx
 from fastapi import FastAPI, Request, Response
 from pydantic import BaseModel
+from PIL import Image
 
 import spacy
 from spacy_llm.util import assemble
@@ -13,6 +16,7 @@ from spacy_llm.util import assemble
 from presidio_analyzer import AnalyzerEngine, RecognizerResult
 from presidio_analyzer.nlp_engine import SpacyNlpEngine
 from presidio_anonymizer import AnonymizerEngine, OperatorConfig
+from presidio_image_redactor import ImageRedactorEngine, ImageAnalyzerEngine
 
 # spaCyパイプラインをconfig.cfgから組み立て
 # Lambda環境ではLAMBDA_TASK_ROOTを使用
@@ -32,6 +36,15 @@ loaded_engine = LoadedSpacyNlpEngine(nlp)
 analyzer = AnalyzerEngine(nlp_engine=loaded_engine)
 anonymizer = AnonymizerEngine()
 
+_image_redactor = None
+
+def get_image_redactor():
+    global _image_redactor
+    if _image_redactor is None:
+        image_analyzer = ImageAnalyzerEngine(analyzer_engine=analyzer)
+        _image_redactor = ImageRedactorEngine(image_analyzer_engine=image_analyzer)
+    return _image_redactor
+
 app = FastAPI(title="pleno-anonymize")
 
 class AnalyzeRequest(BaseModel):
@@ -40,10 +53,12 @@ class AnalyzeRequest(BaseModel):
     entities: Optional[List[str]] = None
 
 class RedactRequest(BaseModel):
-    text: str
+    text: Optional[str] = None
+    image: Optional[str] = None  # base64 encoded image or data URL
     language: str = "en"
     entities: Optional[List[str]] = None
     operators: Optional[Dict[str, Dict[str, Any]]] = None
+    fill_color: Optional[List[int]] = [0, 0, 0]  # RGB for image redaction
 
 @app.post("/api/analyze")
 def analyze(req: AnalyzeRequest):
@@ -65,28 +80,63 @@ def analyze(req: AnalyzeRequest):
 
 @app.post("/api/redact")
 def redact(req: RedactRequest):
-    results = analyzer.analyze(
-        text=req.text,
-        language=req.language,
-        entities=req.entities
-    )
-    anonymizers = {}
-    for r in results:
-        et = r.entity_type
-        if et not in anonymizers:
-            cfg = req.operators.get(et) if req.operators else None
-            if not cfg:
-                anonymizers[et] = OperatorConfig("replace", {"new_value": f"<{et}>"})
-            else:
-                operator_name = cfg.get("type", "replace")
-                params = {k: v for k, v in cfg.items() if k != "type"}
-                anonymizers[et] = OperatorConfig(operator_name, params)
-    out = anonymizer.anonymize(
-        text=req.text,
-        analyzer_results=results,
-        operators=anonymizers
-    )
-    return {"text": out.text, "items": [it.operator for it in out.items]}
+    if not req.text and not req.image:
+        return {"error": "Either 'text' or 'image' must be provided"}
+
+    result = {}
+
+    if req.text:
+        results = analyzer.analyze(
+            text=req.text,
+            language=req.language,
+            entities=req.entities
+        )
+        anonymizers = {}
+        for r in results:
+            et = r.entity_type
+            if et not in anonymizers:
+                cfg = req.operators.get(et) if req.operators else None
+                if not cfg:
+                    anonymizers[et] = OperatorConfig("replace", {"new_value": f"<{et}>"})
+                else:
+                    operator_name = cfg.get("type", "replace")
+                    params = {k: v for k, v in cfg.items() if k != "type"}
+                    anonymizers[et] = OperatorConfig(operator_name, params)
+        out = anonymizer.anonymize(
+            text=req.text,
+            analyzer_results=results,
+            operators=anonymizers
+        )
+        result["text"] = out.text
+        result["items"] = [it.operator for it in out.items]
+
+    if req.image:
+        image_data = req.image
+        if image_data.startswith("data:"):
+            header, data = image_data.split(",", 1)
+            image_bytes = base64.b64decode(data)
+            mime_type = header.split(";")[0].split(":")[1] if ":" in header else "image/png"
+        else:
+            image_bytes = base64.b64decode(image_data)
+            mime_type = "image/png"
+
+        img = Image.open(io.BytesIO(image_bytes))
+        fill = tuple(req.fill_color) if req.fill_color else (0, 0, 0)
+        redacted_img = get_image_redactor().redact(img, fill=fill)
+
+        output_buffer = io.BytesIO()
+        fmt = "PNG"
+        if "jpeg" in mime_type or "jpg" in mime_type:
+            fmt = "JPEG"
+        elif "webp" in mime_type:
+            fmt = "WEBP"
+
+        redacted_img.save(output_buffer, format=fmt)
+        output_buffer.seek(0)
+        encoded = base64.b64encode(output_buffer.read()).decode("utf-8")
+        result["image"] = f"data:{mime_type};base64,{encoded}"
+
+    return result
 
 
 OPENAI_API_BASE = os.getenv("OPENAI_API_BASE", "https://api.openai.com")
@@ -119,8 +169,38 @@ def deanonymize_text(text: str, mapping: Dict[str, str]) -> str:
     return result
 
 
-def redact_openai_request(body: dict) -> Tuple[dict, Dict[str, str]]:
-    """Redact PII from OpenAI API request body."""
+async def redact_image(image_url: str, http_client: httpx.AsyncClient) -> str:
+    if image_url.startswith("data:"):
+        header, data = image_url.split(",", 1)
+        image_bytes = base64.b64decode(data)
+        mime_type = header.split(";")[0].split(":")[1] if ":" in header else "image/png"
+    else:
+        response = await http_client.get(image_url)
+        response.raise_for_status()
+        image_bytes = response.content
+        content_type = response.headers.get("content-type", "image/png")
+        mime_type = content_type.split(";")[0]
+
+    image = Image.open(io.BytesIO(image_bytes))
+    redacted_image = get_image_redactor().redact(image, fill=(0, 0, 0))
+
+    output_buffer = io.BytesIO()
+    fmt = "PNG"
+    if "jpeg" in mime_type or "jpg" in mime_type:
+        fmt = "JPEG"
+    elif "webp" in mime_type:
+        fmt = "WEBP"
+    elif "gif" in mime_type:
+        fmt = "GIF"
+
+    redacted_image.save(output_buffer, format=fmt)
+    output_buffer.seek(0)
+    encoded = base64.b64encode(output_buffer.read()).decode("utf-8")
+
+    return f"data:{mime_type};base64,{encoded}"
+
+
+async def redact_openai_request(body: dict, http_client: httpx.AsyncClient) -> Tuple[dict, Dict[str, str]]:
     combined_mapping = {}
 
     if "messages" not in body:
@@ -138,7 +218,6 @@ def redact_openai_request(body: dict) -> Tuple[dict, Dict[str, str]]:
             redacted_msg["content"] = redacted_content
             combined_mapping.update(mapping)
         elif isinstance(content, list):
-            # Handle array content (e.g., vision API)
             redacted_parts = []
             for part in content:
                 if isinstance(part, dict) and part.get("type") == "text":
@@ -149,6 +228,21 @@ def redact_openai_request(body: dict) -> Tuple[dict, Dict[str, str]]:
                         redacted_part["text"] = redacted_text
                         redacted_parts.append(redacted_part)
                         combined_mapping.update(mapping)
+                    else:
+                        redacted_parts.append(part)
+                elif isinstance(part, dict) and part.get("type") == "image_url":
+                    image_url_obj = part.get("image_url", {})
+                    url = image_url_obj.get("url", "") if isinstance(image_url_obj, dict) else ""
+                    if url:
+                        try:
+                            redacted_url = await redact_image(url, http_client)
+                            redacted_part = part.copy()
+                            redacted_part["image_url"] = {"url": redacted_url}
+                            if isinstance(image_url_obj, dict) and "detail" in image_url_obj:
+                                redacted_part["image_url"]["detail"] = image_url_obj["detail"]
+                            redacted_parts.append(redacted_part)
+                        except Exception:
+                            redacted_parts.append(part)
                     else:
                         redacted_parts.append(part)
                 else:
@@ -162,7 +256,6 @@ def redact_openai_request(body: dict) -> Tuple[dict, Dict[str, str]]:
 
 
 def deanonymize_openai_response(body: dict, mapping: Dict[str, str]) -> dict:
-    """Restore PII in OpenAI API response."""
     if not mapping:
         return body
 
@@ -180,7 +273,6 @@ def deanonymize_openai_response(body: dict, mapping: Dict[str, str]) -> dict:
                     redacted_message["content"] = deanonymize_text(content, mapping)
                 redacted_choice["message"] = redacted_message
 
-            # Handle delta for streaming
             delta = choice.get("delta", {})
             if delta:
                 redacted_delta = delta.copy()
@@ -197,7 +289,6 @@ def deanonymize_openai_response(body: dict, mapping: Dict[str, str]) -> dict:
 
 @app.api_route("/api/openai/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
 async def openai_proxy(request: Request, path: str):
-    """OpenAI API HTTP Proxy endpoint with automatic PII redaction."""
     target_url = f"{OPENAI_API_BASE}/{path}"
 
     headers = dict(request.headers)
@@ -207,17 +298,16 @@ async def openai_proxy(request: Request, path: str):
     body = await request.body()
     mapping = {}
 
-    # Redact PII for chat completions requests
-    if request.method == "POST" and body:
-        try:
-            body_json = json.loads(body)
-            if "messages" in body_json:
-                redacted_body, mapping = redact_openai_request(body_json)
-                body = json.dumps(redacted_body).encode("utf-8")
-        except (json.JSONDecodeError, UnicodeDecodeError):
-            pass
-
     async with httpx.AsyncClient(timeout=120.0) as client:
+        if request.method == "POST" and body:
+            try:
+                body_json = json.loads(body)
+                if "messages" in body_json:
+                    redacted_body, mapping = await redact_openai_request(body_json, client)
+                    body = json.dumps(redacted_body).encode("utf-8")
+            except (json.JSONDecodeError, UnicodeDecodeError):
+                pass
+
         response = await client.request(
             method=request.method,
             url=target_url,

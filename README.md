@@ -27,10 +27,11 @@ curl -X POST https://anonymize.plenoai.com/api/analyze \
 ]
 ```
 
-### 2. `/api/redact` - PII匿名化
+### 2. `/api/redact` - PII匿名化（テキスト・画像対応）
 
-テキスト中の個人情報をマスキングします。
+テキストや画像中の個人情報をマスキングします。テキストと画像を同時に処理することも可能です。
 
+#### テキストのみ
 ```bash
 curl -X POST https://anonymize.plenoai.com/api/redact \
   -H "Content-Type: application/json" \
@@ -48,9 +49,50 @@ curl -X POST https://anonymize.plenoai.com/api/redact \
 }
 ```
 
+#### 画像のみ
+```bash
+curl -X POST https://anonymize.plenoai.com/api/redact \
+  -H "Content-Type: application/json" \
+  -d '{
+    "image": "data:image/png;base64,iVBORw0KGgo...",
+    "fill_color": [0, 0, 0]
+  }'
+```
+
+**Response:**
+```json
+{
+  "image": "data:image/png;base64,..."
+}
+```
+
+#### テキスト + 画像
+```bash
+curl -X POST https://anonymize.plenoai.com/api/redact \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "Contact: john@example.com",
+    "image": "data:image/png;base64,..."
+  }'
+```
+
+**Response:**
+```json
+{
+  "text": "Contact: <EMAIL_ADDRESS>",
+  "items": ["replace"],
+  "image": "data:image/png;base64,..."
+}
+```
+
+**画像匿名化について:**
+- OCR (Tesseract) で画像内のテキストを抽出
+- Presidio でPIIを検出
+- 検出箇所を指定色でマスキング（デフォルト: 黒）
+
 ### 3. `/api/openai/*` - OpenAI API プロキシ（自動PII匿名化付き）
 
-OpenAI API へのプロキシエンドポイント。**リクエスト内のPIIを自動的にマスキングしてからOpenAI APIに送信し、レスポンス時に元の値を復元**します。
+OpenAI API へのプロキシエンドポイント。**リクエスト内のPII（テキスト・画像両方）を自動的にマスキングしてからOpenAI APIに送信し、レスポンス時に元の値を復元**します。
 
 ```bash
 # Chat Completions API（自動redact有効）
@@ -65,10 +107,28 @@ curl -X POST https://anonymize.plenoai.com/api/openai/v1/chat/completions \
 # → レスポンスでプレースホルダーが元の値に復元される
 ```
 
+**Vision API（画像内PII自動匿名化）:**
+```bash
+curl -X POST https://anonymize.plenoai.com/api/openai/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_OPENAI_API_KEY" \
+  -d '{
+    "model": "gpt-4o",
+    "messages": [{
+      "role": "user",
+      "content": [
+        {"type": "text", "text": "この画像に何が写っていますか？"},
+        {"type": "image_url", "image_url": {"url": "data:image/png;base64,..."}}
+      ]
+    }]
+  }'
+# → 画像内のPII（名前、メール、電話番号等）がマスキングされてからOpenAI APIに送信される
+```
+
 **フロー:**
 ```
-クライアント → [PII検出&マスキング] → OpenAI API
-           ← [プレースホルダー復元] ←
+クライアント → [テキスト・画像のPII検出&マスキング] → OpenAI API
+           ← [テキストのプレースホルダー復元] ←
 ```
 
 ## Local Development
