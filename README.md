@@ -48,13 +48,27 @@ curl -X POST https://anonymize.plenoai.com/api/redact \
 }
 ```
 
-### 3. `/api/openai/*` - OpenAI API プロキシ
+### 3. `/api/openai/*` - OpenAI API プロキシ（自動PII匿名化付き）
 
-OpenAI API へのプロキシエンドポイント。
+OpenAI API へのプロキシエンドポイント。**リクエスト内のPIIを自動的にマスキングしてからOpenAI APIに送信し、レスポンス時に元の値を復元**します。
 
 ```bash
-curl https://anonymize.plenoai.com/api/openai/v1/models \
-  -H "Authorization: Bearer YOUR_OPENAI_API_KEY"
+# Chat Completions API（自動redact有効）
+curl -X POST https://anonymize.plenoai.com/api/openai/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_OPENAI_API_KEY" \
+  -d '{
+    "model": "gpt-4o-mini",
+    "messages": [{"role": "user", "content": "John Smithさん（john@example.com）について教えて"}]
+  }'
+# → OpenAI APIには "<PERSON_0>さん（<EMAIL_ADDRESS_7>）について教えて" が送信される
+# → レスポンスでプレースホルダーが元の値に復元される
+```
+
+**フロー:**
+```
+クライアント → [PII検出&マスキング] → OpenAI API
+           ← [プレースホルダー復元] ←
 ```
 
 ## Local Development

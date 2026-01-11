@@ -378,12 +378,25 @@ const ApiSection = () => (
         <code className="text-lg font-medium text-[#171717] dark:text-[#ededed]">/api/openai/*</code>
       </div>
       <p className="text-[#666] dark:text-[#8f8f8f] mb-4">
-        OpenAI APIへのプロキシエンドポイント。全てのHTTPメソッドに対応。
+        OpenAI APIへのプロキシエンドポイント。<strong>Chat Completions APIでは自動PII匿名化が有効</strong>になり、リクエスト内の個人情報をマスキングしてからOpenAI APIに送信し、レスポンス時に元の値を復元します。
       </p>
 
-      <h4 className="font-medium text-[#171717] dark:text-[#ededed] mb-2">Example</h4>
-      <CodeBlock>{`curl https://anonymize.plenoai.com/api/openai/v1/models \\
-  -H "Authorization: Bearer YOUR_OPENAI_API_KEY"`}</CodeBlock>
+      <div className="rounded-lg bg-[#e6f4ff] dark:bg-[#0a2a3d] border border-[#91caff] dark:border-[#1d4ed8] p-4 mb-4">
+        <p className="text-sm text-[#0050b3] dark:text-[#60a5fa]">
+          <strong>自動redactフロー:</strong> クライアント → [PII検出&マスキング] → OpenAI API → [プレースホルダー復元] → クライアント
+        </p>
+      </div>
+
+      <h4 className="font-medium text-[#171717] dark:text-[#ededed] mb-2">Example (自動redact)</h4>
+      <CodeBlock>{`curl -X POST https://anonymize.plenoai.com/api/openai/v1/chat/completions \\
+  -H "Content-Type: application/json" \\
+  -H "Authorization: Bearer YOUR_OPENAI_API_KEY" \\
+  -d '{
+    "model": "gpt-4o-mini",
+    "messages": [{"role": "user", "content": "John Smith (john@example.com) について教えて"}]
+  }'
+# → OpenAI APIには "<PERSON_0> (<EMAIL_ADDRESS_12>) について教えて" が送信される
+# → レスポンスでプレースホルダーが元の値に復元される`}</CodeBlock>
     </div>
   </section>
 );
