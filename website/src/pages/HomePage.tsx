@@ -157,7 +157,7 @@ const HeroSection = () => (
         </p>
 
         <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <Button variant="primary" size="large" suffix={<Server className="h-4 w-4" />} to="/docs">
+          <Button variant="primary" size="large" suffix={<Server className="h-4 w-4" />} href="https://anonymize.plenoai.com/docs">
             APIを使ってみる
           </Button>
           <Button variant="secondary" size="large" suffix={<ArrowRight className="h-4 w-4" />} href={GITHUB_URL}>

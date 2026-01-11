@@ -24,12 +24,14 @@ export default function Footer() {
             </a>
           </div>
           <div className="flex items-center gap-6 text-sm text-[#666] dark:text-[#8f8f8f]">
-            <Link
-              to="/docs"
+            <a
+              href="https://anonymize.plenoai.com/docs"
+              target="_blank"
+              rel="noopener noreferrer"
               className="hover:text-[#171717] dark:hover:text-[#ededed] transition-colors"
             >
               ドキュメント
-            </Link>
+            </a>
             <a
               href="https://natbee.pages.dev/"
               target="_blank"
