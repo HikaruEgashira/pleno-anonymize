@@ -1,6 +1,8 @@
 import os
+import json
+import re
 from pathlib import Path
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Tuple
 import httpx
 from fastapi import FastAPI, Request, Response
 from pydantic import BaseModel
@@ -90,9 +92,112 @@ def redact(req: RedactRequest):
 OPENAI_API_BASE = os.getenv("OPENAI_API_BASE", "https://api.openai.com")
 
 
+def redact_text_with_mapping(text: str, language: str = "en") -> Tuple[str, Dict[str, str]]:
+    """Redact PII from text and return mapping for de-anonymization."""
+    results = analyzer.analyze(text=text, language=language)
+
+    # Sort by start position descending to replace from end
+    results_sorted = sorted(results, key=lambda r: r.start, reverse=True)
+
+    mapping = {}
+    redacted_text = text
+
+    for r in results_sorted:
+        original = text[r.start:r.end]
+        placeholder = f"<{r.entity_type}_{r.start}>"
+        mapping[placeholder] = original
+        redacted_text = redacted_text[:r.start] + placeholder + redacted_text[r.end:]
+
+    return redacted_text, mapping
+
+
+def deanonymize_text(text: str, mapping: Dict[str, str]) -> str:
+    """Restore original values from placeholders."""
+    result = text
+    for placeholder, original in mapping.items():
+        result = result.replace(placeholder, original)
+    return result
+
+
+def redact_openai_request(body: dict) -> Tuple[dict, Dict[str, str]]:
+    """Redact PII from OpenAI API request body."""
+    combined_mapping = {}
+
+    if "messages" not in body:
+        return body, combined_mapping
+
+    redacted_body = body.copy()
+    redacted_messages = []
+
+    for msg in body.get("messages", []):
+        redacted_msg = msg.copy()
+        content = msg.get("content")
+
+        if isinstance(content, str) and content:
+            redacted_content, mapping = redact_text_with_mapping(content)
+            redacted_msg["content"] = redacted_content
+            combined_mapping.update(mapping)
+        elif isinstance(content, list):
+            # Handle array content (e.g., vision API)
+            redacted_parts = []
+            for part in content:
+                if isinstance(part, dict) and part.get("type") == "text":
+                    text = part.get("text", "")
+                    if text:
+                        redacted_text, mapping = redact_text_with_mapping(text)
+                        redacted_part = part.copy()
+                        redacted_part["text"] = redacted_text
+                        redacted_parts.append(redacted_part)
+                        combined_mapping.update(mapping)
+                    else:
+                        redacted_parts.append(part)
+                else:
+                    redacted_parts.append(part)
+            redacted_msg["content"] = redacted_parts
+
+        redacted_messages.append(redacted_msg)
+
+    redacted_body["messages"] = redacted_messages
+    return redacted_body, combined_mapping
+
+
+def deanonymize_openai_response(body: dict, mapping: Dict[str, str]) -> dict:
+    """Restore PII in OpenAI API response."""
+    if not mapping:
+        return body
+
+    result = body.copy()
+
+    if "choices" in result:
+        redacted_choices = []
+        for choice in result.get("choices", []):
+            redacted_choice = choice.copy()
+            message = choice.get("message", {})
+            if message:
+                redacted_message = message.copy()
+                content = message.get("content")
+                if isinstance(content, str):
+                    redacted_message["content"] = deanonymize_text(content, mapping)
+                redacted_choice["message"] = redacted_message
+
+            # Handle delta for streaming
+            delta = choice.get("delta", {})
+            if delta:
+                redacted_delta = delta.copy()
+                content = delta.get("content")
+                if isinstance(content, str):
+                    redacted_delta["content"] = deanonymize_text(content, mapping)
+                redacted_choice["delta"] = redacted_delta
+
+            redacted_choices.append(redacted_choice)
+        result["choices"] = redacted_choices
+
+    return result
+
+
 @app.api_route("/api/openai/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
 async def openai_proxy(request: Request, path: str):
-    """OpenAI API HTTP Proxy endpoint."""
+    """OpenAI API HTTP Proxy endpoint with automatic PII redaction."""
     target_url = f"{OPENAI_API_BASE}/{path}"
 
     headers = dict(request.headers)
@@ -100,6 +205,17 @@ async def openai_proxy(request: Request, path: str):
     headers.pop("content-length", None)
 
     body = await request.body()
+    mapping = {}
+
+    # Redact PII for chat completions requests
+    if request.method == "POST" and body:
+        try:
+            body_json = json.loads(body)
+            if "messages" in body_json:
+                redacted_body, mapping = redact_openai_request(body_json)
+                body = json.dumps(redacted_body).encode("utf-8")
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            pass
 
     async with httpx.AsyncClient(timeout=120.0) as client:
         response = await client.request(
@@ -110,8 +226,18 @@ async def openai_proxy(request: Request, path: str):
             params=request.query_params,
         )
 
+    # Deanonymize response if we have a mapping
+    response_content = response.content
+    if mapping and response.status_code == 200:
+        try:
+            response_json = json.loads(response.content)
+            deanonymized = deanonymize_openai_response(response_json, mapping)
+            response_content = json.dumps(deanonymized).encode("utf-8")
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            pass
+
     return Response(
-        content=response.content,
+        content=response_content,
         status_code=response.status_code,
         headers=dict(response.headers),
         media_type=response.headers.get("content-type"),
