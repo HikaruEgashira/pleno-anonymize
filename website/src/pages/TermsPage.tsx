@@ -82,16 +82,17 @@ export default function TermsPage() {
           <div className="space-y-8">
             <Section title="1. Acceptance">
               <p>
-                Pleno Anonymize（以下「本ソフトウェア」）を利用することにより、
+                Pleno Anonymize APIサービス（以下「本サービス」）を利用することにより、
                 本利用規約に同意したものとみなされます。
               </p>
             </Section>
 
-            <Section title="2. License">
-              <HighlightBox type="success">
+            <Section title="2. Service Description">
+              <HighlightBox type="info">
                 <p>
-                  本ソフトウェアはオープンソースソフトウェアとして提供されています。
-                  ライセンスの詳細はGitHubリポジトリをご確認ください。
+                  本サービスは合同会社Natbeeが https://anonymize.plenoai.com で提供するクラウドAPIサービスです。
+                  テキストからPII（個人情報）を検出・匿名化する機能を提供します。
+                  なお、本ソフトウェアはオープンソースとしても公開されており、セルフホストも可能です。
                 </p>
               </HighlightBox>
             </Section>
@@ -100,9 +101,8 @@ export default function TermsPage() {
               <p>以下の用途での利用が許可されています</p>
               <ul className="space-y-2 mt-4">
                 <ListItem type="allowed">個人・商用目的でのAPI利用</ListItem>
-                <ListItem type="allowed">ソースコードの改変・カスタマイズ</ListItem>
-                <ListItem type="allowed">派生物の作成と配布</ListItem>
-                <ListItem type="allowed">社内システムへの組み込み</ListItem>
+                <ListItem type="allowed">API連携による社内システムへの組み込み</ListItem>
+                <ListItem type="allowed">アプリケーションやサービスへの統合</ListItem>
               </ul>
             </Section>
 
@@ -115,25 +115,33 @@ export default function TermsPage() {
               </ul>
             </Section>
 
-            <Section title="5. Disclaimer">
+            <Section title="5. Service Availability">
+              <p>
+                本サービスは合理的な努力をもって提供されますが、100%の可用性を保証するものではありません。
+                メンテナンスや予期せぬ障害により、一時的にサービスが利用できない場合があります。
+              </p>
+            </Section>
+
+            <Section title="6. Disclaimer">
               <HighlightBox type="warning">
                 <p>
-                  本ソフトウェアは「現状のまま」提供されます。
-                  開発者は、本ソフトウェアの利用により生じたいかなる損害についても
+                  本サービスは「現状のまま」提供されます。
+                  合同会社Natbeeは、本サービスの利用により生じたいかなる損害についても
                   責任を負いません。PIIの検出精度は100%を保証するものではありません。
                 </p>
               </HighlightBox>
             </Section>
 
-            <Section title="6. LLM API Usage">
+            <Section title="7. LLM API Usage">
               <p>
-                本ソフトウェアはspaCy-LLMを通じてOpenAI APIを利用します。
-                OpenAI APIの利用については、OpenAIの利用規約およびAPI使用ポリシーに
-                従う必要があります。
+                本サービスはOpenAI APIを利用しています。
+                処理の一環として、テキストの一部が外部LLMプロバイダーに送信されます。
+                LLMプロバイダー側でもデータを保持しない設定を使用しており、
+                AIモデルの学習に使用されることはありません。
               </p>
             </Section>
 
-            <Section title="7. Privacy">
+            <Section title="8. Privacy">
               <p>
                 データの取り扱いについては、
                 <Link to="/privacy" className="text-[#0050b3] dark:text-[#60a5fa] hover:underline">
@@ -143,7 +151,7 @@ export default function TermsPage() {
               </p>
             </Section>
 
-            <Section title="8. Changes">
+            <Section title="9. Changes">
               <p>
                 本利用規約は予告なく変更されることがあります。
                 変更後の利用規約は、GitHubリポジトリおよび本ウェブサイトに掲載された時点で
@@ -151,17 +159,17 @@ export default function TermsPage() {
               </p>
             </Section>
 
-            <Section title="9. Contact">
+            <Section title="10. Contact">
               <p>
                 本利用規約に関するお問い合わせは、GitHubのIssueまたは
-                運営会社までお願いいたします。
+                合同会社Natbeeまでお願いいたします。
               </p>
             </Section>
 
-            <Section title="10. Governing Law">
+            <Section title="11. Governing Law">
               <p>
                 本利用規約は日本法に準拠し、解釈されます。
-                本ソフトウェアに関連する紛争については、東京地方裁判所を
+                本サービスに関連する紛争については、東京地方裁判所を
                 第一審の専属的合意管轄裁判所とします。
               </p>
             </Section>
