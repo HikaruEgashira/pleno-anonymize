@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ShieldCheck, Lock, Eye, Database, Trash2, ArrowLeft } from 'lucide-react';
+import { ShieldCheck, Cloud, Eye, Database, Trash2, ArrowLeft } from 'lucide-react';
 import Footer from '../components/Footer';
 
 const InfoCard = ({
@@ -62,9 +62,9 @@ export default function PrivacyPage() {
 
           <div className="grid gap-6 md:grid-cols-2 mb-12">
             <InfoCard
-              icon={Lock}
-              title="Self-hosted"
-              description="APIはご自身のサーバーでホストするため、データは外部に送信されません"
+              icon={Cloud}
+              title="Cloud API"
+              description="AWS上で構築したAPIサーバーで安全に処理されます"
             />
             <InfoCard
               icon={Eye}
@@ -93,8 +93,9 @@ export default function PrivacyPage() {
 
             <Section title="2. Data Processing">
               <p>
-                Pleno Anonymizeはセルフホスト型のAPIであり、お客様自身のサーバーで実行されます。
-                以下のデータ処理が行われます
+                Pleno Anonymizeは合同会社Natbeeが提供するクラウドAPIサービスです。
+                お客様のデータは https://anonymize.plenoai.com で安全に処理されます。
+                以下のデータ処理が行われます：
               </p>
               <ul className="list-disc pl-6 space-y-2">
                 <li>リクエストで送信されたテキストのPII検出</li>
@@ -104,38 +105,47 @@ export default function PrivacyPage() {
             </Section>
 
             <Section title="3. LLM API Calls">
-              <div className="rounded-lg bg-[#fff8e6] dark:bg-[#3d2e0a] border border-[#ffe58f] dark:border-[#92400e] p-4">
-                <p className="text-[#915b00] dark:text-[#fbbf24]">
-                  spaCy-LLMによるNER処理時、テキストの一部がOpenAI APIに送信されます。
-                  OpenAI APIの利用はOpenAIのプライバシーポリシーに従います。
+              <div className="rounded-lg bg-[#d3f9d8] dark:bg-[#0a3d1a] border border-[#b8f0c0] dark:border-[#166534] p-4">
+                <p className="text-[#0a7227] dark:text-[#4ade80]">
+                  spaCy-LLMによるNER処理時、テキストの一部がLLM APIに送信されます。
+                  LLMプロバイダー側でもデータを保持しない設定を使用しており、AIモデルの学習に使用されることはありません。
                 </p>
               </div>
             </Section>
 
             <Section title="4. Data Retention">
               <p>
-                Pleno Anonymizeは、処理されたテキストを保存しません。
+                Pleno Anonymizeは、処理されたテキストを一切保存しません。
                 全てのデータはメモリ上で処理され、レスポンス返却後に即座に破棄されます。
+                LLMプロバイダー側でも情報を保持しないよう設定しています。
               </p>
             </Section>
 
-            <Section title="5. Security">
+            <Section title="5. No AI Training">
+              <div className="rounded-lg bg-[#d3f9d8] dark:bg-[#0a3d1a] border border-[#b8f0c0] dark:border-[#166534] p-4">
+                <p className="text-[#0a7227] dark:text-[#4ade80]">
+                  お客様のデータがAIモデルの学習に使用されることはありません。
+                </p>
+              </div>
+            </Section>
+
+            <Section title="6. Security">
               <p>
-                APIはご自身のインフラで実行されるため、セキュリティはお客様の責任となります。
-                以下のベストプラクティスを推奨します
+                以下のセキュリティ対策を実施しています：
               </p>
               <ul className="list-disc pl-6 space-y-2">
-                <li>HTTPSの使用</li>
-                <li>適切な認証・認可の実装</li>
-                <li>ファイアウォールの設定</li>
-                <li>定期的なセキュリティアップデート</li>
+                <li>全ての通信はHTTPSで暗号化</li>
+                <li>インフラの継続的な監視</li>
               </ul>
+              <p className="mt-4">
+                セキュリティに関するお問い合わせは security@plenoai.com までご連絡ください。
+              </p>
             </Section>
 
-            <Section title="6. Contact">
+            <Section title="7. Contact">
               <p>
                 プライバシーに関するお問い合わせは、GitHubのIssueまたは
-                運営会社までお願いいたします。
+                合同会社Natbeeまでお願いいたします。
               </p>
             </Section>
           </div>
