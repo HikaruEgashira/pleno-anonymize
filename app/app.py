@@ -6,8 +6,10 @@ import io
 from pathlib import Path
 from typing import List, Optional, Dict, Any, Tuple
 import httpx
-from fastapi import FastAPI, Request, Response
+from fastapi import Depends, FastAPI, Request, Response
 from pydantic import BaseModel
+
+from auth import verify_token
 from scalar_fastapi import get_scalar_api_reference
 from PIL import Image
 
@@ -104,7 +106,7 @@ class RedactRequest(BaseModel):
     fill_color: Optional[List[int]] = [0, 0, 0]  # RGB for image redaction
 
 @app.post("/api/analyze", tags=["PII Detection"])
-def analyze(req: AnalyzeRequest):
+async def analyze(req: AnalyzeRequest, _user: dict = Depends(verify_token)):
     """
     Detect PII entities in text.
 
@@ -144,7 +146,7 @@ def analyze(req: AnalyzeRequest):
     ]
 
 @app.post("/api/redact", tags=["PII Redaction"])
-def redact(req: RedactRequest):
+async def redact(req: RedactRequest, _user: dict = Depends(verify_token)):
     """
     Redact (anonymize) PII in text and/or images.
 

@@ -1574,7 +1574,7 @@ requires-dist = [
     { name = "presidio-image-redactor", specifier = ">=0.0.53" },
     { name = "scalar-fastapi", specifier = ">=1.6.0" },
     { name = "spacy", specifier = ">=3.7" },
-    { name = "spacy-llm", directory = "packages/spacy-llm" },
+    { name = "spacy-llm", specifier = ">=0.7.3" },
     { name = "typer", specifier = ">=0.9.0" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.35.0" },
 ]
@@ -2134,23 +2134,15 @@ wheels = [
 [[package]]
 name = "spacy-llm"
 version = "0.7.3"
-source = { directory = "packages/spacy-llm" }
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "confection" },
     { name = "jinja2" },
     { name = "spacy" },
 ]
-
-[package.metadata]
-requires-dist = [
-    { name = "confection", specifier = ">=0.1.3,<1.0.0" },
-    { name = "einops", marker = "extra == 'transformers'", specifier = ">=0.4" },
-    { name = "jinja2" },
-    { name = "langchain", marker = "extra == 'langchain'", specifier = ">=0.1,<0.2" },
-    { name = "spacy", specifier = ">=3.5,<4.0" },
-    { name = "torch", marker = "extra == 'transformers'", specifier = ">=1.13.1,<2.0" },
-    { name = "transformers", marker = "extra == 'transformers'", specifier = ">=4.28.1,<5.0" },
-    { name = "xformers", marker = "extra == 'transformers'" },
+sdist = { url = "https://files.pythonhosted.org/packages/9c/d9/930a1fbfad023931a4dc0d18a328c368c01ccd84fa098facb36d34605c74/spacy_llm-0.7.3.tar.gz", hash = "sha256:6721affe16cec127a6249ad0cb39236c14fa804fad4842e816b55c6f051ea389", size = 149913 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/72/ee/a07c4a0f166284744eaaef91b65d3cd3f5f25cd7f8de412211dcdc6d9bf0/spacy_llm-0.7.3-py2.py3-none-any.whl", hash = "sha256:9efda964ca490a479770f0611e84613f602d8b017546f227d8265abde1a581ca", size = 255929 },
 ]
 
 [[package]]
