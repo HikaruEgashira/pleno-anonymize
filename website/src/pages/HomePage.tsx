@@ -182,6 +182,7 @@ const HeroSection = () => (
             <code className="text-[#e5e5e5]">
               {`# PII検出
 curl -X POST https://anonymize.plenoai.com/api/analyze \\
+  -H "Authorization: Bearer $TOKEN" \\
   -H "Content-Type: application/json" \\
   -d '{"text": "山田太郎さんの電話番号は090-1234-5678です。"}'
 
