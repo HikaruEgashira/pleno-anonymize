@@ -46,3 +46,9 @@ variable "openai_api_key" {
   sensitive   = true
   default     = ""
 }
+
+variable "invitely_introspect_url" {
+  description = "Invitely token introspection endpoint URL"
+  type        = string
+  default     = ""
+}

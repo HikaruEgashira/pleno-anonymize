@@ -10,8 +10,9 @@ resource "aws_lambda_function" "api" {
 
   environment {
     variables = {
-      OPENAI_API_BASE = var.openai_api_base
-      OPENAI_API_KEY  = var.openai_api_key
+      OPENAI_API_BASE         = var.openai_api_base
+      OPENAI_API_KEY          = var.openai_api_key
+      INVITELY_INTROSPECT_URL = var.invitely_introspect_url
     }
   }
 
