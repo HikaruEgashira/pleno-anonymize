@@ -1,2 +1,2 @@
 [tool.uv.workspace]
-members = ["app", "packages/spacy-llm"]
+members = ["app"]
