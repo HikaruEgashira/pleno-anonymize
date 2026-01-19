@@ -13,38 +13,57 @@ from auth import verify_token
 from scalar_fastapi import get_scalar_api_reference
 from PIL import Image
 
-import spacy
-from spacy_llm.util import assemble
-
-from presidio_analyzer import AnalyzerEngine, RecognizerResult
-from presidio_analyzer.nlp_engine import SpacyNlpEngine
-from presidio_anonymizer import AnonymizerEngine, OperatorConfig
-from presidio_image_redactor import ImageRedactorEngine, ImageAnalyzerEngine
-
-# spaCyパイプラインをconfig.cfgから組み立て
-# Lambda環境ではLAMBDA_TASK_ROOTを使用
-lambda_task_root = os.getenv("LAMBDA_TASK_ROOT")
-if lambda_task_root:
-    config_path = Path(lambda_task_root) / "config.cfg"
-else:
-    config_path = Path(__file__).parent / "config.cfg"
-nlp = assemble(str(config_path))
-
-class LoadedSpacyNlpEngine(SpacyNlpEngine):
-    def __init__(self, loaded_spacy_model):
-        super().__init__()
-        self.nlp = {"en": loaded_spacy_model}
-
-loaded_engine = LoadedSpacyNlpEngine(nlp)
-analyzer = AnalyzerEngine(nlp_engine=loaded_engine)
-anonymizer = AnonymizerEngine()
-
+# Lazy initialization for Lambda cold start optimization
+_nlp = None
+_analyzer = None
+_anonymizer = None
 _image_redactor = None
+
+
+def _init_presidio():
+    """Lazy initialization of Presidio components."""
+    global _nlp, _analyzer, _anonymizer
+
+    if _analyzer is not None:
+        return
+
+    from spacy_llm.util import assemble
+    from presidio_analyzer import AnalyzerEngine
+    from presidio_analyzer.nlp_engine import SpacyNlpEngine
+    from presidio_anonymizer import AnonymizerEngine
+
+    class LoadedSpacyNlpEngine(SpacyNlpEngine):
+        def __init__(self, loaded_spacy_model):
+            super().__init__()
+            self.nlp = {"en": loaded_spacy_model}
+
+    lambda_task_root = os.getenv("LAMBDA_TASK_ROOT")
+    if lambda_task_root:
+        config_path = Path(lambda_task_root) / "config.cfg"
+    else:
+        config_path = Path(__file__).parent / "config.cfg"
+
+    _nlp = assemble(str(config_path))
+    loaded_engine = LoadedSpacyNlpEngine(_nlp)
+    _analyzer = AnalyzerEngine(nlp_engine=loaded_engine)
+    _anonymizer = AnonymizerEngine()
+
+
+def get_analyzer():
+    _init_presidio()
+    return _analyzer
+
+
+def get_anonymizer():
+    _init_presidio()
+    return _anonymizer
+
 
 def get_image_redactor():
     global _image_redactor
     if _image_redactor is None:
-        image_analyzer = ImageAnalyzerEngine(analyzer_engine=analyzer)
+        from presidio_image_redactor import ImageRedactorEngine, ImageAnalyzerEngine
+        image_analyzer = ImageAnalyzerEngine(analyzer_engine=get_analyzer())
         _image_redactor = ImageRedactorEngine(image_analyzer_engine=image_analyzer)
     return _image_redactor
 
@@ -129,7 +148,7 @@ async def analyze(req: AnalyzeRequest, _user: dict = Depends(verify_token)):
     ]
     ```
     """
-    results: List[RecognizerResult] = analyzer.analyze(
+    results = get_analyzer().analyze(
         text=req.text,
         language=req.language,
         entities=req.entities
@@ -177,7 +196,7 @@ async def redact(req: RedactRequest, _user: dict = Depends(verify_token)):
     result = {}
 
     if req.text:
-        results = analyzer.analyze(
+        results = get_analyzer().analyze(
             text=req.text,
             language=req.language,
             entities=req.entities
@@ -193,7 +212,7 @@ async def redact(req: RedactRequest, _user: dict = Depends(verify_token)):
                     operator_name = cfg.get("type", "replace")
                     params = {k: v for k, v in cfg.items() if k != "type"}
                     anonymizers[et] = OperatorConfig(operator_name, params)
-        out = anonymizer.anonymize(
+        out = get_anonymizer().anonymize(
             text=req.text,
             analyzer_results=results,
             operators=anonymizers
@@ -237,7 +256,7 @@ GEMINI_API_BASE = os.getenv("GEMINI_API_BASE", "https://generativelanguage.googl
 
 def redact_text_with_mapping(text: str, language: str = "en") -> Tuple[str, Dict[str, str]]:
     """Redact PII from text and return mapping for de-anonymization."""
-    results = analyzer.analyze(text=text, language=language)
+    results = get_analyzer().analyze(text=text, language=language)
 
     # Sort by start position descending to replace from end
     results_sorted = sorted(results, key=lambda r: r.start, reverse=True)
