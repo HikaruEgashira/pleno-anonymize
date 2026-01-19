@@ -12,6 +12,7 @@ RUN pip install --no-cache-dir \
     presidio-analyzer>=2.2 \
     presidio-anonymizer>=2.2 \
     spacy>=3.7 \
+    spacy-llm>=0.7.3 \
     langchain>=0.3.27 \
     langchain-community>=0.3.27 \
     confection>=0.1.3 \
@@ -19,10 +20,6 @@ RUN pip install --no-cache-dir \
 
 # Download spaCy English model
 RUN python -m spacy download en_core_web_sm
-
-# Copy spacy-llm package and install
-COPY packages/spacy-llm /tmp/spacy-llm
-RUN pip install --no-cache-dir /tmp/spacy-llm && rm -rf /tmp/spacy-llm
 
 # Copy application code
 COPY app/handler.py app/config.cfg ${LAMBDA_TASK_ROOT}/
