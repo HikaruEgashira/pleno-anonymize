@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { ShieldCheck, Lock, ArrowRight, Eye, UserX, Zap, Server, Github, Star, Code } from 'lucide-react';
+import { ShieldCheck, Lock, ArrowRight, Eye, UserX, Zap, Server, Github, Star, Code, Key, Terminal } from 'lucide-react';
 import Footer from '../components/Footer';
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
@@ -199,6 +199,157 @@ curl -X POST https://anonymize.plenoai.com/api/analyze \\
   </section>
 );
 
+const QuickStartSection = () => (
+  <section className="bg-[#fafafa] dark:bg-[#111] py-24">
+    <div className="container mx-auto max-w-6xl px-4 md:px-6">
+      <motion.div
+        className="mb-16 text-center"
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6 }}
+      >
+        <h2 className="mb-4 text-3xl font-normal text-[#171717] dark:text-[#ededed] md:text-4xl">
+          クイックスタート
+        </h2>
+        <p className="mx-auto max-w-2xl text-[#666] dark:text-[#8f8f8f]">
+          3ステップでAPIを使い始める
+        </p>
+      </motion.div>
+
+      <div className="grid gap-8 md:grid-cols-3">
+        <motion.div
+          className="rounded-xl border border-[#eaeaea] dark:border-[#333] bg-white dark:bg-[#171717] p-6"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+        >
+          <div className="mb-4 flex items-center gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#171717] dark:bg-[#ededed] text-white dark:text-[#0a0a0a] text-sm font-medium">1</div>
+            <Key className="h-5 w-5 text-[#666] dark:text-[#8f8f8f]" />
+          </div>
+          <h3 className="mb-2 text-lg font-medium text-[#171717] dark:text-[#ededed]">トークン取得</h3>
+          <p className="text-[#666] dark:text-[#8f8f8f] text-sm mb-4">
+            invitelyでアクセストークンを取得します。招待が必要な場合は管理者にお問い合わせください。
+          </p>
+          <a
+            href="https://invitely.plenoai.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm text-[#171717] dark:text-[#ededed] underline hover:no-underline"
+          >
+            invitely.plenoai.com →
+          </a>
+        </motion.div>
+
+        <motion.div
+          className="rounded-xl border border-[#eaeaea] dark:border-[#333] bg-white dark:bg-[#171717] p-6"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+        >
+          <div className="mb-4 flex items-center gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#171717] dark:bg-[#ededed] text-white dark:text-[#0a0a0a] text-sm font-medium">2</div>
+            <Terminal className="h-5 w-5 text-[#666] dark:text-[#8f8f8f]" />
+          </div>
+          <h3 className="mb-2 text-lg font-medium text-[#171717] dark:text-[#ededed]">APIリクエスト</h3>
+          <p className="text-[#666] dark:text-[#8f8f8f] text-sm mb-4">
+            AuthorizationヘッダーにBearerトークンを含めてリクエストを送信します。
+          </p>
+          <code className="block bg-[#fafafa] dark:bg-[#2a2a2a] p-2 rounded text-xs text-[#171717] dark:text-[#ededed] overflow-x-auto">
+            Authorization: Bearer &lt;token&gt;
+          </code>
+        </motion.div>
+
+        <motion.div
+          className="rounded-xl border border-[#eaeaea] dark:border-[#333] bg-white dark:bg-[#171717] p-6"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+        >
+          <div className="mb-4 flex items-center gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#171717] dark:bg-[#ededed] text-white dark:text-[#0a0a0a] text-sm font-medium">3</div>
+            <ShieldCheck className="h-5 w-5 text-[#666] dark:text-[#8f8f8f]" />
+          </div>
+          <h3 className="mb-2 text-lg font-medium text-[#171717] dark:text-[#ededed]">PII処理</h3>
+          <p className="text-[#666] dark:text-[#8f8f8f] text-sm mb-4">
+            テキストや画像を送信すると、個人情報が検出・匿名化されて返されます。
+          </p>
+          <Link
+            to="/docs"
+            className="text-sm text-[#171717] dark:text-[#ededed] underline hover:no-underline"
+          >
+            APIリファレンス →
+          </Link>
+        </motion.div>
+      </div>
+    </div>
+  </section>
+);
+
+const EndpointsSection = () => (
+  <section className="bg-white dark:bg-[#0a0a0a] py-24">
+    <div className="container mx-auto max-w-6xl px-4 md:px-6">
+      <motion.div
+        className="mb-16 text-center"
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6 }}
+      >
+        <h2 className="mb-4 text-3xl font-normal text-[#171717] dark:text-[#ededed] md:text-4xl">
+          APIエンドポイント
+        </h2>
+        <p className="mx-auto max-w-2xl text-[#666] dark:text-[#8f8f8f]">
+          Base URL: <code className="bg-[#fafafa] dark:bg-[#2a2a2a] px-2 py-1 rounded">https://anonymize.plenoai.com</code>
+        </p>
+      </motion.div>
+
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse">
+          <thead>
+            <tr className="border-b border-[#eaeaea] dark:border-[#333]">
+              <th className="text-left py-4 px-4 text-[#171717] dark:text-[#ededed] font-medium">エンドポイント</th>
+              <th className="text-left py-4 px-4 text-[#171717] dark:text-[#ededed] font-medium">説明</th>
+              <th className="text-left py-4 px-4 text-[#171717] dark:text-[#ededed] font-medium">認証</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr className="border-b border-[#eaeaea] dark:border-[#333]">
+              <td className="py-4 px-4"><code className="text-sm bg-[#fafafa] dark:bg-[#2a2a2a] px-2 py-1 rounded">POST /api/analyze</code></td>
+              <td className="py-4 px-4 text-[#666] dark:text-[#8f8f8f]">テキスト中のPIIを検出</td>
+              <td className="py-4 px-4"><span className="text-xs bg-[#171717] dark:bg-[#ededed] text-white dark:text-[#0a0a0a] px-2 py-1 rounded">必須</span></td>
+            </tr>
+            <tr className="border-b border-[#eaeaea] dark:border-[#333]">
+              <td className="py-4 px-4"><code className="text-sm bg-[#fafafa] dark:bg-[#2a2a2a] px-2 py-1 rounded">POST /api/redact</code></td>
+              <td className="py-4 px-4 text-[#666] dark:text-[#8f8f8f]">テキスト/画像中のPIIを匿名化</td>
+              <td className="py-4 px-4"><span className="text-xs bg-[#171717] dark:bg-[#ededed] text-white dark:text-[#0a0a0a] px-2 py-1 rounded">必須</span></td>
+            </tr>
+            <tr className="border-b border-[#eaeaea] dark:border-[#333]">
+              <td className="py-4 px-4"><code className="text-sm bg-[#fafafa] dark:bg-[#2a2a2a] px-2 py-1 rounded">/api/openai/*</code></td>
+              <td className="py-4 px-4 text-[#666] dark:text-[#8f8f8f]">OpenAI APIプロキシ（PII自動匿名化）</td>
+              <td className="py-4 px-4"><span className="text-xs bg-[#666] text-white px-2 py-1 rounded">APIキー</span></td>
+            </tr>
+            <tr className="border-b border-[#eaeaea] dark:border-[#333]">
+              <td className="py-4 px-4"><code className="text-sm bg-[#fafafa] dark:bg-[#2a2a2a] px-2 py-1 rounded">/api/anthropic/*</code></td>
+              <td className="py-4 px-4 text-[#666] dark:text-[#8f8f8f]">Anthropic APIプロキシ（PII自動匿名化）</td>
+              <td className="py-4 px-4"><span className="text-xs bg-[#666] text-white px-2 py-1 rounded">APIキー</span></td>
+            </tr>
+            <tr>
+              <td className="py-4 px-4"><code className="text-sm bg-[#fafafa] dark:bg-[#2a2a2a] px-2 py-1 rounded">/api/gemini/*</code></td>
+              <td className="py-4 px-4 text-[#666] dark:text-[#8f8f8f]">Gemini APIプロキシ（PII自動匿名化）</td>
+              <td className="py-4 px-4"><span className="text-xs bg-[#666] text-white px-2 py-1 rounded">APIキー</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+);
+
 const FeaturesSection = () => (
   <section className="bg-[#fafafa] dark:bg-[#111] py-24">
     <div className="container mx-auto max-w-6xl px-4 md:px-6">
@@ -301,6 +452,8 @@ export default function HomePage() {
       <Header />
       <div className="flex-1">
         <HeroSection />
+        <QuickStartSection />
+        <EndpointsSection />
         <FeaturesSection />
       </div>
       <Footer />
