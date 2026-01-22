@@ -1,8 +1,9 @@
 import { motion } from 'framer-motion';
-import { ShieldCheck, Lock, ArrowRight, Eye, UserX, Zap, Server, Github, Star, Code } from 'lucide-react';
+import { ShieldCheck, Lock, ArrowRight, Eye, UserX, Zap, Server, Github, Star, Code, LogIn, LogOut } from 'lucide-react';
 import Footer from '../components/Footer';
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { useAuth } from '../auth/useAuth';
 
 const GITHUB_URL = 'https://github.com/HikaruEgashira/pleno-anonymize';
 
@@ -83,6 +84,7 @@ const FeatureCard = ({
 
 const Header = () => {
   const [starCount, setStarCount] = useState<number | null>(null);
+  const { isAuthenticated, login, logout, isLoading } = useAuth();
 
   useEffect(() => {
     fetch('https://api.github.com/repos/HikaruEgashira/pleno-anonymize')
@@ -103,21 +105,42 @@ const Header = () => {
             <ShieldCheck className="h-5 w-5 text-[#171717] dark:text-[#ededed]" />
             <span className="font-medium text-[#171717] dark:text-[#ededed]">Pleno Anonymize</span>
           </Link>
-          <a
-            href={GITHUB_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[#eaeaea] dark:border-[#333] bg-white dark:bg-[#171717] hover:bg-[#f5f5f5] dark:hover:bg-[#2a2a2a] transition-colors"
-          >
-            <Github className="h-4 w-4 text-[#171717] dark:text-[#ededed]" />
-            <span className="text-sm font-medium text-[#171717] dark:text-[#ededed]">GitHub</span>
-            {starCount !== null && (
-              <span className="flex items-center gap-1 text-sm text-[#666] dark:text-[#8f8f8f]">
-                <Star className="h-3 w-3" />
-                {starCount}
-              </span>
+          <div className="flex items-center gap-3">
+            <a
+              href={GITHUB_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[#eaeaea] dark:border-[#333] bg-white dark:bg-[#171717] hover:bg-[#f5f5f5] dark:hover:bg-[#2a2a2a] transition-colors"
+            >
+              <Github className="h-4 w-4 text-[#171717] dark:text-[#ededed]" />
+              <span className="text-sm font-medium text-[#171717] dark:text-[#ededed]">GitHub</span>
+              {starCount !== null && (
+                <span className="flex items-center gap-1 text-sm text-[#666] dark:text-[#8f8f8f]">
+                  <Star className="h-3 w-3" />
+                  {starCount}
+                </span>
+              )}
+            </a>
+            {isAuthenticated ? (
+              <button
+                onClick={() => logout()}
+                disabled={isLoading}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[#eaeaea] dark:border-[#333] bg-white dark:bg-[#171717] hover:bg-[#f5f5f5] dark:hover:bg-[#2a2a2a] transition-colors disabled:opacity-50"
+              >
+                <LogOut className="h-4 w-4 text-[#171717] dark:text-[#ededed]" />
+                <span className="text-sm font-medium text-[#171717] dark:text-[#ededed]">ログアウト</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => login()}
+                disabled={isLoading}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#171717] dark:bg-[#ededed] hover:bg-[#383838] dark:hover:bg-[#cccccc] transition-colors disabled:opacity-50"
+              >
+                <LogIn className="h-4 w-4 text-white dark:text-[#0a0a0a]" />
+                <span className="text-sm font-medium text-white dark:text-[#0a0a0a]">ログイン</span>
+              </button>
             )}
-          </a>
+          </div>
         </div>
       </div>
     </header>

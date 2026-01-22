@@ -1,12 +1,25 @@
 import { ApiReferenceReact } from '@scalar/api-reference-react';
 import '@scalar/api-reference-react/style.css';
+import { useAuth } from '../auth/useAuth';
 
 export default function DocsPage() {
+  const { token } = useAuth();
+
   return (
     <ApiReferenceReact
       configuration={{
         url: `${import.meta.env.BASE_URL}openapi.json`,
         theme: 'default',
+        authentication: token
+          ? {
+              preferredSecurityScheme: 'BearerAuth',
+              securitySchemes: {
+                BearerAuth: {
+                  token: token,
+                },
+              },
+            }
+          : undefined,
       }}
     />
   );
