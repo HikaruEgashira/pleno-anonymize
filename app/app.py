@@ -12,6 +12,7 @@ from pydantic import BaseModel
 from auth import verify_token
 from scalar_fastapi import get_scalar_api_reference
 from PIL import Image
+from presidio_anonymizer.entities import OperatorConfig
 
 # Lazy initialization for Lambda cold start optimization
 _nlp = None
