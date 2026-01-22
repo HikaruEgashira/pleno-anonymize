@@ -16,7 +16,4 @@ export const authConfig: TAuthConfig = {
   storage: 'session',
   storageKeyPrefix: 'pleno_auth_',
   clearURL: true,
-  postLogin: () => {
-    window.location.href = '/docs';
-  },
 };
